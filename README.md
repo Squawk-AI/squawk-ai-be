@@ -94,11 +94,12 @@ Requires Python 3.11+. See `.env.example` for all required environment variables
 - LangSmith for LLM call tracing and prompt observability
 - Structured logging with operation-level context
 
-## Status
+## Known Limitations
 
-Working proof of concept, deployed and tested with real aircraft types and maintenance workflows. Future work:
+This is a working proof of concept, not production-hardened. Calling these out because I'd want to see them acknowledged in a codebase I was reviewing:
 
-- Auth and multi-tenancy
-- Streaming responses (currently poll-based)
-- Parameterized queries for the vector search layer
-- Test coverage
+- **No authentication on the API.** User identity comes from honor-system headers (`X-User-First-Name`, etc). The frontend uses Supabase Auth but the backend doesn't verify tokens.
+- **SQL injection surface.** The vector search queries interpolate values into raw SQL via an `execute_sql` RPC. The frontend constrains input with dropdowns, but the API itself doesn't validate or parameterize. This needs parameterized queries or at minimum server-side validation.
+- **In-memory conversation state.** The `conversation_threads` dict lives in process memory. Server restart loses all active conversation mappings (the checkpoint data in SQLite survives, but the lookup table doesn't).
+- No test suite beyond a manual retrieval script.
+- Poll-based instead of streaming.
